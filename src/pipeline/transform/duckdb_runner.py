@@ -57,3 +57,7 @@ def construir_prata(
         log.info("[prata] %s salva em %s", tabela, destino)
 
     return contagens
+
+def construir_ouro(con: duckdb.DuckDBPyConnection) -> int:
+    """Cria a tabela ouro_brent_brl a partir das tabelas prata (mesma conexão)."""
+    return criar_tabela(con, "ouro_brent_brl", "gold_brent_brl.sql")
