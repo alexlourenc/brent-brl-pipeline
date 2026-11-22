@@ -1,0 +1,9 @@
+# Dependencias diretas do projeto (versoes fixadas para reproducao exata)
+# Direct dependencies (pinned for exact reproducibility)
+requests==2.34.2
+python-dotenv==1.2.4
+duckdb==2.0.1
+pytest==9.2.0
+
+# Instala o proprio pacote (src/pipeline) em modo editavel
+-e .
