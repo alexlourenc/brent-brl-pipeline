@@ -12,7 +12,7 @@ import logging
 from datetime import date
 from pathlib import Path
 
-from pipeline.extract.http_client import ClienteHTTP
+from pipeline.extract.http_client import ClienteHTTP, FormatoInesperado
 from pipeline.extract.periodos import dividir_em_blocos_anuais
 
 log = logging.getLogger(__name__)
@@ -23,8 +23,6 @@ URL_PTAX = (
 )
 
 
-class FormatoInesperado(Exception):
-    """A API respondeu 200, mas o JSON não tem a estrutura esperada."""
 
 
 def _data_bcb(d: date) -> str:

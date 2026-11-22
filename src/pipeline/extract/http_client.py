@@ -26,6 +26,8 @@ STATUS_RETENTAVEIS: frozenset[int] = frozenset({429, 500, 502, 503, 504})
 class ErroHTTP(Exception):
     """Falha definitiva: erro não retentável ou retentativas esgotadas."""
 
+class FormatoInesperado(Exception):
+    """A API respondeu 200, mas o JSON não tem a estrutura esperada."""
 
 class RateLimiter:
     """Garante um intervalo mínimo (em segundos) entre duas chamadas."""
