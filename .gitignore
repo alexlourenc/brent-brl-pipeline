@@ -14,4 +14,4 @@ __pycache__/
 *.egg-info/
 
 # Scripts de teste manual / Manual scratch scripts
-rascunho_*.py
+rascunho_*
