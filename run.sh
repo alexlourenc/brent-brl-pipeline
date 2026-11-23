@@ -36,6 +36,10 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# 5. O pipeline (o código de saída dele vira o código de saída do script)
+# 5. Testes automáticos (rápidos e sem internet): se algum falhar, o script para aqui
+echo ">> Rodando os testes (pytest)"
+python -m pytest -q
+
+# 6. O pipeline (o código de saída dele vira o código de saída do script)
 echo ">> Executando o pipeline"
 python -m pipeline "$@"
