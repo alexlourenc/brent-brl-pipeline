@@ -31,6 +31,12 @@ class Config:
     dir_bronze: Path
     dir_prata: Path
     dir_output: Path
+    dir_relatorios: Path
+    # 3. Comportamento do cliente HTTP (ajustável sem mexer no código)
+    http_max_tentativas: int
+    http_backoff_base_s: float
+    http_intervalo_min_s: float
+    http_timeout_s: float
 
     @property
     def chave_mascarada(self) -> str:
@@ -49,12 +55,26 @@ def _ler_data(nome: str, padrao: date) -> date:
         raise ConfigError(f"{nome} inválida: '{valor}'. Use AAAA-MM-DD.") from exc
 
 
+def _ler_numero(nome: str, padrao: float, minimo: float) -> float:
+    """Lê um número do ambiente; vazio = padrão; abaixo do mínimo = erro."""
+    valor = os.getenv(nome, "").strip()
+    if not valor:
+        return padrao
+    try:
+        numero = float(valor)
+    except ValueError as exc:
+        raise ConfigError(f"{nome} inválido: '{valor}'. Use um número.") from exc
+    if numero < minimo:
+        raise ConfigError(f"{nome} deve ser no mínimo {minimo} (recebido: {numero}).")
+    return numero
+
+
 def carregar_config() -> Config:
     """Carrega o .env, valida e devolve a configuração."""
-    # 3. Carrega o .env da raiz (se não existir, usa o ambiente do sistema)
+    # 4. Carrega o .env da raiz (se não existir, usa o ambiente do sistema)
     load_dotenv(RAIZ / ".env")
 
-    # 4. Falhar cedo: sem chave válida, não adianta seguir
+    # 5. Falhar cedo: sem chave válida, não adianta seguir
     chave = os.getenv("EIA_API_KEY", "").strip()
     if not chave or chave == "coloque_sua_chave_aqui":
         raise ConfigError(
@@ -74,4 +94,9 @@ def carregar_config() -> Config:
         dir_bronze=RAIZ / "data" / "bronze",
         dir_prata=RAIZ / "data" / "prata",
         dir_output=RAIZ / "output",
+        dir_relatorios=RAIZ / "data" / "relatorios",
+        http_max_tentativas=int(_ler_numero("HTTP_MAX_TENTATIVAS", 4, minimo=1)),
+        http_backoff_base_s=_ler_numero("HTTP_BACKOFF_BASE_S", 1.0, minimo=0),
+        http_intervalo_min_s=_ler_numero("HTTP_INTERVALO_MIN_S", 1.0, minimo=0),
+        http_timeout_s=_ler_numero("HTTP_TIMEOUT_S", 30.0, minimo=1),
     )
