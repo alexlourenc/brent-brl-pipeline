@@ -211,5 +211,5 @@ def executar_checks(con: duckdb.DuckDBPyConnection, inicio: date, fim: date) -> 
     for r in resultados:
         nivel = logging.INFO if r.passou else (logging.ERROR if r.severidade == BLOQUEANTE else logging.WARNING)
         log.log(nivel, "[qualidade] %-15s %-13s %s: %s", r.tabela, r.check, r.descricao,
-                "ok" if r.passou else "FALHOU")
+                "ok" if r.passou else ("FALHOU" if r.severidade == BLOQUEANTE else "ALERTA"))
     return resultados
