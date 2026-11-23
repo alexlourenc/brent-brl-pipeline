@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brent-brl-pipeline"
-version = "0.1.0"
+version = "1.0.0"
 description = "Pipeline Brent (EIA) x PTAX (BCB): custo do barril em reais"
 requires-python = ">=3.11"
 
