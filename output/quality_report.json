@@ -1,15 +1,26 @@
 {
   "status_geral": "aprovado_com_alertas",
   "execucao": {
-    "inicio": "2026-11-22T21:51:37",
-    "fim": "2026-11-22T21:51:38",
-    "duracao_s": 0.33,
+    "inicio": "2026-11-22T22:59:47",
+    "fim": "2026-11-22T22:59:54",
+    "duracao_s": 6.96,
     "periodo": {
       "inicio": "2024-01-01",
       "fim": "2026-11-22"
     }
   },
-  "extracao": {},
+  "extracao": {
+    "bcb": {
+      "chamadas": 3,
+      "retentativas": 0,
+      "falhas": 0
+    },
+    "eia": {
+      "chamadas": 3,
+      "retentativas": 0,
+      "falhas": 0
+    }
+  },
   "volumes": {
     "bronze_ptax": 727,
     "bronze_brent": 729,
@@ -177,7 +188,7 @@
     {
       "tabela": "ouro_brent_brl",
       "check": "null_ratio",
-      "descricao": "nulos em 'variacao_brl' <= 1.0%",
+      "descricao": "nulos em 'variacao_brl' <= 1 linha(s)",
       "severidade": "bloqueante",
       "passou": true,
       "medido": {
