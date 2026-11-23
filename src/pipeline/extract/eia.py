@@ -12,6 +12,7 @@ import logging
 from datetime import date
 from pathlib import Path
 
+from pipeline.extract.armazenamento import escrita_atomica
 from pipeline.extract.http_client import ClienteHTTP, FormatoInesperado
 from pipeline.extract.periodos import dividir_em_blocos_anuais
 
@@ -27,50 +28,47 @@ def extrair_brent(
 ) -> list[Path]:
     """Baixa o Brent do período, por ano e com paginação. Devolve os arquivos gravados."""
     destino = dir_bronze / "brent"
-    destino.mkdir(parents=True, exist_ok=True)
+    nomes: list[str] = []
 
-    # 1. Idempotência: limpa a extração anterior
-    for antigo in destino.glob("brent_*.json"):
-        antigo.unlink()
+    # 1. Troca atômica: a bronze anterior só é substituída se TUDO der certo
+    with escrita_atomica(destino) as pasta_tmp:
+        for ini, fim_bloco in dividir_em_blocos_anuais(inicio, fim):
+            offset, pagina = 0, 0
+            # 2. Paginação: pede páginas até ter recebido o 'total' anunciado pela API
+            while True:
+                params = {
+                    "api_key": api_key,
+                    "frequency": "daily",
+                    "data[0]": "value",
+                    "facets[series][]": SERIE_BRENT,
+                    "start": ini.isoformat(),
+                    "end": fim_bloco.isoformat(),
+                    "sort[0][column]": "period",
+                    "sort[0][direction]": "asc",
+                    "offset": offset,
+                    "length": TAMANHO_PAGINA,
+                }
+                dados = cliente.get_json(URL_EIA, params=params)
 
-    arquivos: list[Path] = []
-    for ini, fim_bloco in dividir_em_blocos_anuais(inicio, fim):
-        offset, pagina = 0, 0
-        # 2. Paginação: pede páginas até ter recebido o 'total' anunciado pela API
-        while True:
-            params = {
-                "api_key": api_key,
-                "frequency": "daily",
-                "data[0]": "value",
-                "facets[series][]": SERIE_BRENT,
-                "start": ini.isoformat(),
-                "end": fim_bloco.isoformat(),
-                "sort[0][column]": "period",
-                "sort[0][direction]": "asc",
-                "offset": offset,
-                "length": TAMANHO_PAGINA,
-            }
-            dados = cliente.get_json(URL_EIA, params=params)
+                # 3. Validação mínima da estrutura: lista em response -> data
+                resposta = dados.get("response") if isinstance(dados, dict) else None
+                if not isinstance(resposta, dict) or not isinstance(resposta.get("data"), list):
+                    raise FormatoInesperado(f"[eia] resposta sem 'response.data' ({ini} a {fim_bloco})")
+                registros = resposta["data"]
+                total = int(resposta.get("total", 0))  # a EIA manda o total como texto
 
-            # 3. Validação mínima da estrutura: lista em response -> data
-            resposta = dados.get("response") if isinstance(dados, dict) else None
-            if not isinstance(resposta, dict) or not isinstance(resposta.get("data"), list):
-                raise FormatoInesperado(f"[eia] resposta sem 'response.data' ({ini} a {fim_bloco})")
-            registros = resposta["data"]
-            total = int(resposta.get("total", 0))  # a EIA manda o total como texto
+                # 4. Bronze = cru: uma página por arquivo
+                arquivo = pasta_tmp / f"brent_{ini}_{fim_bloco}_p{pagina}.json"
+                arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+                log.info(
+                    "[eia] %s a %s (página %d): %d de %d registros -> %s",
+                    ini, fim_bloco, pagina, offset + len(registros), total, arquivo.name,
+                )
+                nomes.append(arquivo.name)
 
-            # 4. Bronze = cru: uma página por arquivo
-            arquivo = destino / f"brent_{ini}_{fim_bloco}_p{pagina}.json"
-            arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
-            log.info(
-                "[eia] %s a %s (página %d): %d de %d registros -> %s",
-                ini, fim_bloco, pagina, offset + len(registros), total, arquivo.name,
-            )
-            arquivos.append(arquivo)
+                offset += len(registros)
+                pagina += 1
+                if not registros or offset >= total:
+                    break
 
-            offset += len(registros)
-            pagina += 1
-            if not registros or offset >= total:
-                break
-
-    return arquivos
+    return [destino / nome for nome in nomes]
