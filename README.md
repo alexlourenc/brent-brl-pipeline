@@ -4,7 +4,7 @@
 
 Pipeline de dados em Python + SQL (DuckDB) que cruza o preço internacional do petróleo Brent (API da EIA, EUA) com a cotação oficial do dólar (PTAX, API do Banco Central do Brasil) e entrega, todo dia, o custo do barril em reais **decomposto em efeito do petróleo e efeito do câmbio**, com validações automáticas de qualidade e relatório de auditoria.
 
-> Desafio Python – FT03 – Projeto 1 (Fast Track). Autor: Alex Lourenço.
+> Desafio Python – FT03 – Projeto 1 (Fast Track). Autor: Alex Lourenço. Versão **1.0.0** (histórico em [`docs/HISTORICO.md`](docs/HISTORICO.md)).
 
 ---
 
@@ -68,7 +68,9 @@ O `run.sh` faz tudo, nesta ordem:
 4. roda os **38 testes automáticos** (se algum falhar, para aqui);
 5. roda o **pipeline completo** (extração → bronze → prata → ouro → qualidade → saída).
 
-O código de saída do script é **0** em caso de sucesso e **1** em caso de falha.
+O código de saída do script é **0** em caso de sucesso e **1** em caso de falha. Uma execução bem-sucedida termina com a linha `Pipeline concluído: aprovado_com_alertas` (o alerta é de anomalia de mercado, não de erro; ver [seção 7](#7-data-quality)).
+
+> **Windows:** rode o `./run.sh` dentro do **Git Bash** (o prompt mostra `MINGW64` e `$`). No PowerShell, o Windows abre o script numa janela separada que fecha sozinha ao terminar.
 
 ### Outras formas de executar
 
@@ -154,7 +156,7 @@ Todo o SQL fica em arquivos próprios, em `src/pipeline/sql/` (o Python orquestr
 | — | **Desaninhamento** | `UNNEST(value, recursive := true)` e `UNNEST(response.data, recursive := true)` | `silver_ptax.sql`, `silver_brent.sql` |
 | 1 | **Padronização de tipos e datas** | `CAST`/`TRY_CAST`: texto → `DOUBLE`; data e hora → `DATE` | pratas |
 | 2 | **Tratamento de nulos** | Valores vazios viram `NULL` (`TRY_CAST`) e são descartados; dias sem PTAX recebem a última cotação válida, marcados em `ptax_preenchida` | pratas e ouro |
-| 3 | **Deduplicação** | `ROW_NUMBER() OVER (PARTITION BY data ORDER BY data_hora_cotacao DESC)`, mantendo a cotação mais recente do dia | `silver_ptax.sql`, `silver_brent.sql` |
+| 3 | **Deduplicação** | `ROW_NUMBER() OVER (PARTITION BY data ...)` + `WHERE ordem = 1`: na PTAX fica a cotação mais recente do dia; no Brent, o registro com valor preenchido | `silver_ptax.sql`, `silver_brent.sql` |
 | 4 | **Cruzamento de fontes** | `ASOF LEFT JOIN`: cada dia de Brent recebe a PTAX mais recente até aquela data | `gold_brent_brl.sql` |
 | 5 | **Enriquecimento de métricas** | Brent em R$, variação (R$ e %), efeito preço, efeito câmbio, média móvel de 7 pregões, spread da PTAX | `gold_brent_brl.sql` |
 
@@ -277,6 +279,7 @@ brent-brl-pipeline/
 ├── requirements.txt          # dependências com versões fixadas
 ├── pyproject.toml            # pacote instalável (src/) e configuração do pytest
 ├── .env.example              # modelo das variáveis de ambiente (sem segredos)
+├── .gitattributes            # força fim de linha LF nos .sh (senão o bash quebra no Windows)
 ├── docs/HISTORICO.md         # histórico de alterações
 ├── src/pipeline/
 │   ├── __main__.py           # orquestração: python -m pipeline
@@ -287,7 +290,7 @@ brent-brl-pipeline/
 │   ├── quality/              # checks e relatório
 │   └── load/                 # writer: Parquet particionado
 ├── tests/                    # 38 testes (pytest), sem internet
-├── data/                     # bronze e prata (fora do Git, regeneráveis)
+├── data/                     # bronze, prata e relatórios de falha (fora do Git, regeneráveis)
 └── output/                   # produto final + quality_report.json (versionado)
 ```
 
@@ -296,7 +299,7 @@ brent-brl-pipeline/
 ## 12. Decisões e limitações
 
 - **Base do cruzamento é o Brent.** Dias sem Brent (feriados em Londres) ficam de fora, porque não há o que converter.
-- **Feriados brasileiros usam a última PTAX publicada** (`ASOF JOIN`), marcados em `ptax_preenchida`. A interpolação pelos vizinhos foi descartada: usaria uma cotação **futura**, que não existia no dia (*look-ahead bias*), e criaria um valor que o Banco Central nunca publicou.
+- **Feriados brasileiros usam a última PTAX publicada** (*forward fill*, via `ASOF JOIN`), marcados em `ptax_preenchida`. O pipeline **não extrapola nem inventa valores**: toda PTAX da tabela é uma cotação real do Banco Central. A interpolação pelos vizinhos foi descartada: usaria uma cotação **futura**, que não existia no dia (*look-ahead bias*), e criaria um valor que o Banco Central nunca publicou.
 - **Limitação conhecida:** num feriado brasileiro, o `efeito_cambio_brl` é zero por construção, e o dia útil seguinte acumula dois dias de variação do dólar. Para analisar a decomposição, vale filtrar ou observar `ptax_preenchida` do dia e do pregão anterior.
 - **Variação é em relação ao pregão anterior**, e não ao dia anterior do calendário: segunda-feira compara com sexta.
 - **A EIA publica com alguns dias de atraso**, então o fim da série do Brent pode ser anterior ao `DATA_FIM`.
