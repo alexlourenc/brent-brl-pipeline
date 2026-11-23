@@ -90,15 +90,25 @@ def checar_schema(con: duckdb.DuckDBPyConnection, tabela: str, esperado: dict[st
 
 
 def checar_nulos(
-    con: duckdb.DuckDBPyConnection, tabela: str, coluna: str, limite: float = 0.0
+    con: duckdb.DuckDBPyConnection,
+    tabela: str,
+    coluna: str,
+    limite: float = 0.0,
+    nulos_permitidos: int = 0,
 ) -> ResultadoCheck:
-    """Proporção de nulos na coluna (null ratio) está dentro do limite?"""
+    """Nulos na coluna dentro do limite (proporção OU quantidade fixa de linhas)?"""
     total, preenchidos = _consulta(con, f"SELECT COUNT(*), COUNT({coluna}) FROM {tabela}")
     nulos = total - preenchidos
-    ratio = nulos / total if total else 1.0  # tabela vazia = reprovada
+    ratio = nulos / total if total else 1.0
+    descricao = (
+        f"nulos em '{coluna}' <= {nulos_permitidos} linha(s)"
+        if nulos_permitidos
+        else f"nulos em '{coluna}' <= {limite:.1%}"
+    )
     return ResultadoCheck(
-        tabela, "null_ratio", f"nulos em '{coluna}' <= {limite:.1%}", BLOQUEANTE,
-        passou=ratio <= limite,
+        tabela, "null_ratio", descricao, BLOQUEANTE,
+        # tabela vazia é sempre reprovada
+        passou=total > 0 and (nulos <= nulos_permitidos or ratio <= limite),
         medido={"coluna": coluna, "linhas": total, "nulos": nulos, "null_ratio": round(ratio, 6)},
     )
 
@@ -199,7 +209,7 @@ def executar_checks(con: duckdb.DuckDBPyConnection, inicio: date, fim: date) -> 
         checar_unicidade(con, "ouro_brent_brl", "data"),
         checar_nulos(con, "ouro_brent_brl", "brent_brl"),
         checar_nulos(con, "ouro_brent_brl", "ptax_venda"),
-        checar_nulos(con, "ouro_brent_brl", "variacao_brl", limite=0.01),  # 1ª linha é nula
+        checar_nulos(con, "ouro_brent_brl", "variacao_brl", nulos_permitidos=1),  # só a 1ª linha
         checar_intervalo(con, "ouro_brent_brl", "data", inicio, fim),
         checar_intervalo(con, "ouro_brent_brl", "brent_brl", 10.0, 3000.0),
         checar_intervalo(con, "ouro_brent_brl", "spread_ptax", 0.0, 0.05),
