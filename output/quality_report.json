@@ -1,0 +1,283 @@
+{
+  "status_geral": "aprovado_com_alertas",
+  "execucao": {
+    "inicio": "2026-11-22T21:51:37",
+    "fim": "2026-11-22T21:51:38",
+    "duracao_s": 0.33,
+    "periodo": {
+      "inicio": "2024-01-01",
+      "fim": "2026-11-22"
+    }
+  },
+  "extracao": {},
+  "volumes": {
+    "bronze_ptax": 727,
+    "bronze_brent": 729,
+    "prata_ptax": 726,
+    "prata_brent": 729,
+    "ouro_brent_brl": 729
+  },
+  "resumo_checks": {
+    "total": 19,
+    "aprovados": 18,
+    "falhas_bloqueantes": 0,
+    "alertas": 1
+  },
+  "checks": [
+    {
+      "tabela": "prata_ptax",
+      "check": "schema",
+      "descricao": "4 colunas com os tipos do contrato",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "faltando": [],
+        "tipos_errados": {},
+        "extras": []
+      }
+    },
+    {
+      "tabela": "prata_ptax",
+      "check": "unicidade",
+      "descricao": "'data' sem repetição",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "data",
+        "linhas": 726,
+        "duplicadas": 0
+      }
+    },
+    {
+      "tabela": "prata_ptax",
+      "check": "null_ratio",
+      "descricao": "nulos em 'ptax_venda' <= 0.0%",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "ptax_venda",
+        "linhas": 726,
+        "nulos": 0,
+        "null_ratio": 0.0
+      }
+    },
+    {
+      "tabela": "prata_ptax",
+      "check": "intervalo",
+      "descricao": "'ptax_venda' entre 1.0 e 15.0",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "ptax_venda",
+        "fora_do_intervalo": 0,
+        "minimo": "4.8543",
+        "maximo": "6.2086"
+      }
+    },
+    {
+      "tabela": "prata_brent",
+      "check": "schema",
+      "descricao": "4 colunas com os tipos do contrato",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "faltando": [],
+        "tipos_errados": {},
+        "extras": []
+      }
+    },
+    {
+      "tabela": "prata_brent",
+      "check": "unicidade",
+      "descricao": "'data' sem repetição",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "data",
+        "linhas": 729,
+        "duplicadas": 0
+      }
+    },
+    {
+      "tabela": "prata_brent",
+      "check": "null_ratio",
+      "descricao": "nulos em 'brent_usd' <= 0.0%",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "brent_usd",
+        "linhas": 729,
+        "nulos": 0,
+        "null_ratio": 0.0
+      }
+    },
+    {
+      "tabela": "prata_brent",
+      "check": "intervalo",
+      "descricao": "'brent_usd' entre 10.0 e 200.0",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "brent_usd",
+        "fora_do_intervalo": 0,
+        "minimo": "59.93",
+        "maximo": "138.21"
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "schema",
+      "descricao": "15 colunas com os tipos do contrato",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "faltando": [],
+        "tipos_errados": {},
+        "extras": []
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "unicidade",
+      "descricao": "'data' sem repetição",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "data",
+        "linhas": 729,
+        "duplicadas": 0
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "null_ratio",
+      "descricao": "nulos em 'brent_brl' <= 0.0%",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "brent_brl",
+        "linhas": 729,
+        "nulos": 0,
+        "null_ratio": 0.0
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "null_ratio",
+      "descricao": "nulos em 'ptax_venda' <= 0.0%",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "ptax_venda",
+        "linhas": 729,
+        "nulos": 0,
+        "null_ratio": 0.0
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "null_ratio",
+      "descricao": "nulos em 'variacao_brl' <= 1.0%",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "variacao_brl",
+        "linhas": 729,
+        "nulos": 1,
+        "null_ratio": 0.001372
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "intervalo",
+      "descricao": "'data' entre 2024-01-01 e 2026-11-22",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "data",
+        "fora_do_intervalo": 0,
+        "minimo": "2024-01-02",
+        "maximo": "2026-11-17"
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "intervalo",
+      "descricao": "'brent_brl' entre 10.0 e 3000.0",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "brent_brl",
+        "fora_do_intervalo": 0,
+        "minimo": "326.4437",
+        "maximo": "713.5091"
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "intervalo",
+      "descricao": "'spread_ptax' entre 0.0 e 0.05",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "coluna": "spread_ptax",
+        "fora_do_intervalo": 0,
+        "minimo": "0.0005",
+        "maximo": "0.0014"
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "regra_negocio",
+      "descricao": "efeito preço + efeito câmbio = variação (tolerância 0.001)",
+      "severidade": "bloqueante",
+      "passou": true,
+      "medido": {
+        "linhas_divergentes": 0
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "anomalia",
+      "descricao": "|variacao_brl_pct| > 10.0% em um dia",
+      "severidade": "alerta",
+      "passou": false,
+      "medido": {
+        "dias": 10,
+        "maiores": [
+          {
+            "data": "2026-10-02",
+            "variacao_brl_pct": 18.3798
+          },
+          {
+            "data": "2026-04-17",
+            "variacao_brl_pct": -15.961
+          },
+          {
+            "data": "2026-11-04",
+            "variacao_brl_pct": -14.4375
+          },
+          {
+            "data": "2026-03-12",
+            "variacao_brl_pct": 13.5226
+          },
+          {
+            "data": "2026-03-23",
+            "variacao_brl_pct": -12.9519
+          }
+        ]
+      }
+    },
+    {
+      "tabela": "ouro_brent_brl",
+      "check": "anomalia",
+      "descricao": "dias com PTAX preenchida <= 5%",
+      "severidade": "alerta",
+      "passou": true,
+      "medido": {
+        "dias_preenchidos": 20,
+        "proporcao": 0.0274
+      }
+    }
+  ]
+}
