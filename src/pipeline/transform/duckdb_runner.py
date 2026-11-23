@@ -61,3 +61,14 @@ def construir_prata(
 def construir_ouro(con: duckdb.DuckDBPyConnection) -> int:
     """Cria a tabela ouro_brent_brl a partir das tabelas prata (mesma conexão)."""
     return criar_tabela(con, "ouro_brent_brl", "gold_brent_brl.sql")
+
+def contar_bronze(con: duckdb.DuckDBPyConnection, dir_bronze: Path) -> dict[str, int]:
+    """Conta os registros brutos da bronze (antes de qualquer limpeza)."""
+    b = dir_bronze.as_posix()
+    ptax = con.execute(
+        f"SELECT COUNT(*) FROM (SELECT UNNEST(value) FROM read_json('{b}/ptax/*.json'))"
+    ).fetchone()[0]
+    brent = con.execute(
+        f"SELECT COUNT(*) FROM (SELECT UNNEST(response.data) FROM read_json('{b}/brent/*.json'))"
+    ).fetchone()[0]
+    return {"bronze_ptax": ptax, "bronze_brent": brent}
